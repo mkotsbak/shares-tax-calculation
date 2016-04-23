@@ -24,10 +24,12 @@ abstract class ShareTransaction {
 
 case class ShareSale(date: String, currency: String = "NOK", exchangeRate: BigDecimal = 1, amount: Long, price: BigDecimal = 1, fees: BigDecimal = 0) extends ShareTransaction {
     override def toString = "Sale: " + super.toString
+    override def totalPriceInLocalCurrency = super.totalPriceInLocalCurrency - fees
 }
 
 case class ShareBuy(date: String, currency: String = "NOK", exchangeRate: BigDecimal = 1, amount: Long, price: BigDecimal = 1, fees: BigDecimal = 0) extends ShareTransaction {
     override def toString = "Buy: " + super.toString
+    override def totalPriceInLocalCurrency = super.totalPriceInLocalCurrency + fees
 }
 
 case class ShareRealisation(buy: ShareBuy, sale: ShareSale) {
