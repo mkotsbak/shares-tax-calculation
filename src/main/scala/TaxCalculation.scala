@@ -4,6 +4,10 @@
   */
 
 abstract class ShareTransaction {
+    val shareName: String = ""
+    val isin: String = ""
+    val securityType = "Share"
+    val fees: BigDecimal
     val date: String
     val currency: String
     val exchangeRate: BigDecimal
@@ -18,11 +22,11 @@ abstract class ShareTransaction {
     }
 }
 
-case class ShareSale(date: String, currency: String = "NOK", exchangeRate: BigDecimal = 1, amount: Long, price: BigDecimal = 1) extends ShareTransaction {
+case class ShareSale(date: String, currency: String = "NOK", exchangeRate: BigDecimal = 1, amount: Long, price: BigDecimal = 1, fees: BigDecimal = 0) extends ShareTransaction {
     override def toString = "Sale: " + super.toString
 }
 
-case class ShareBuy(date: String, currency: String = "NOK", exchangeRate: BigDecimal = 1, amount: Long, price: BigDecimal = 1) extends ShareTransaction {
+case class ShareBuy(date: String, currency: String = "NOK", exchangeRate: BigDecimal = 1, amount: Long, price: BigDecimal = 1, fees: BigDecimal = 0) extends ShareTransaction {
     override def toString = "Buy: " + super.toString
 }
 
@@ -35,10 +39,15 @@ case class ShareRealisation(buy: ShareBuy, sale: ShareSale) {
     }
 }
 
-case class Result(realisations: Seq[ShareRealisation] = Seq.empty, remainingShares: Seq[ShareBuy] = Seq.empty)
+case class Result(realisations: Seq[ShareRealisation] = Seq.empty, remainingShares: Seq[ShareBuy] = Seq.empty) {
+    override def toString = {
+        s"Realisations:\n${realisations.mkString("\n")}" +
+          s"\n\nRemaining shares:\n${remainingShares.mkString("\n")}"
+    }
+}
 
 object TaxCalculation {
-    def calculateRealisation(buy: ShareBuy, sale: ShareSale): (ShareRealisation, Option[ShareTransaction]) = {
+    private def calculateRealisation(buy: ShareBuy, sale: ShareSale): (ShareRealisation, Option[ShareTransaction]) = {
         if (buy.amount == sale.amount) ( ShareRealisation(buy, sale), None )
         else if (buy.amount > sale.amount) ( ShareRealisation(buy.copy(amount = sale.amount), sale),
             Some(buy.copy(amount = buy.amount - sale.amount))
@@ -61,7 +70,7 @@ object TaxCalculation {
                     remainingShares = res.remainingShares.tail), s)
             }
         }
-        val res = sales.foldLeft(Result(remainingShares = buys.reverse))(handle)
+        val res = sales.foldLeft(Result(remainingShares = buys))(handle)
         res.copy(realisations = res.realisations.reverse, res.remainingShares.reverse)
     }
 }
@@ -118,11 +127,11 @@ object TestTaxCalculation extends App {
         val input1 = Seq(
             ShareBuy(
                 date = "2015-01-01",
-                amount = 50
+                amount = 60
             ),
             ShareBuy(
                 date = "2015-02-01",
-                amount = 50
+                amount = 40
             ),
             ShareSale(
                 date = "2015-03-01",
@@ -133,8 +142,8 @@ object TestTaxCalculation extends App {
         val output = TaxCalculation.calculateRealisations(input1)
         val realisation = output.realisations.headOption
         assert(realisation.isDefined)
-        assert(realisation.get.sale.amount == 50 )
-        assert(realisation.get.buy.amount == 50 )
+        assert(realisation.get.sale.amount == 60 )
+        assert(realisation.get.buy.amount == 60 )
         assert(output.remainingShares.isEmpty)
         assert(output.realisations.size == 2)
 
