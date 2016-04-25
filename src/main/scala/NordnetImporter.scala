@@ -7,8 +7,8 @@ import java.util.Locale
 trait CSVImporter {
     def importFromCSV(header: Seq[String], csvInput: Seq[Seq[String]]): Seq[ShareTransaction]
 
-    def parseCSVString(csvInput: String): Seq[ShareTransaction] = {
-        val res = csvInput.replace(',', '.') .lines.
+    def parseCSVString(csvInput: Iterator[String]): Seq[ShareTransaction] = {
+        val res = csvInput.map(_.replace(',', '.')).
           filter(_.trim.length > 0).
           map(_.split(';').toSeq).toSeq
 
