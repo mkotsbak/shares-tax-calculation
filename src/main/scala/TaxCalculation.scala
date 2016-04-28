@@ -80,7 +80,7 @@ object TaxCalculation {
             }
         }
         val res = sales.foldLeft(Result(remainingShares = buys))(handle)
-        res.copy(realisations = res.realisations.reverse, res.remainingShares.reverse)
+        res.copy(realisations = res.realisations.reverse, remainingShares = res.remainingShares)
     }
 }
 
