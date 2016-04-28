@@ -15,21 +15,26 @@ abstract class ShareTransaction {
     val price: BigDecimal
     def totalPrice = amount * price
     def priceInLocalCurrency = price * exchangeRate
+    def feesPrShare = fees / amount
+    def priceInLocalCurrencyIncludingFees: BigDecimal
     def totalPriceInLocalCurrency = totalPrice * exchangeRate
 
     override def toString = {
-        s"Date: $date, amount: $amount, price: $price, currency: $currency, price Local currency: $priceInLocalCurrency, total in local currency: $totalPriceInLocalCurrency"
+        s"Date: $date, amount: $amount, price: $price, currency: $currency, price Local currency: $priceInLocalCurrency," +
+          s" price pr. share including fees: $priceInLocalCurrencyIncludingFees, total in local currency: $totalPriceInLocalCurrency"
     }
 }
 
 case class ShareSale(date: String, currency: String = "NOK", exchangeRate: BigDecimal = 1, amount: Long, price: BigDecimal = 1, fees: BigDecimal = 0) extends ShareTransaction {
     override def toString = "Sale: " + super.toString
     override def totalPrice = super.totalPrice - fees
+    override def priceInLocalCurrencyIncludingFees = (price - feesPrShare) * exchangeRate
 }
 
 case class ShareBuy(date: String, currency: String = "NOK", exchangeRate: BigDecimal = 1, amount: Long, price: BigDecimal = 1, fees: BigDecimal = 0) extends ShareTransaction {
     override def toString = "Buy: " + super.toString
     override def totalPrice = super.totalPrice + fees
+    override def priceInLocalCurrencyIncludingFees = (price + feesPrShare) * exchangeRate
 }
 
 case class ShareRealisation(buy: ShareBuy, sale: ShareSale) {
@@ -77,79 +82,4 @@ object TaxCalculation {
     }
 }
 
-object TestTaxCalculation extends App {
-    def testSimple = {
-        val input1 = Seq(
-            ShareBuy(
-                date = "2015-01-01",
-                amount = 100
-            ),
-            ShareSale(
-              date = "2015-02-01",
-              amount = 100
-            )
-        )
 
-        val output = TaxCalculation.calculateRealisations(input1)
-        val realisations = output.realisations.headOption
-        assert(realisations.isDefined)
-        assert(realisations.get.sale.amount == 100 )
-        assert (output.remainingShares.isEmpty)
-
-        println(s"TestSimple: \nInput: $input1: \noutput: $output\n\n")
-    }
-    testSimple
-
-    def testBuySplitRemaining = {
-        val input1 = Seq(
-            ShareBuy(
-                date = "2015-01-01",
-                amount = 100,
-                price = 100.0
-            ),
-            ShareSale(
-                date = "2015-02-01",
-                amount = 50,
-                price = 110.0
-            )
-        )
-
-        val output = TaxCalculation.calculateRealisations(input1)
-        val realisations = output.realisations.headOption
-        assert(realisations.isDefined)
-        assert(realisations.get.sale.amount == 50 )
-        assert(realisations.get.buy.amount == 50 )
-        assert(output.remainingShares.nonEmpty)
-
-        println(s"TestBuySplitRemaining: \nInput: $input1: \noutput: $output\n\n")
-    }
-    testBuySplitRemaining
-
-    def testSaleSplitRemaining = {
-        val input1 = Seq(
-            ShareBuy(
-                date = "2015-01-01",
-                amount = 60
-            ),
-            ShareBuy(
-                date = "2015-02-01",
-                amount = 40
-            ),
-            ShareSale(
-                date = "2015-03-01",
-                amount = 100
-            )
-        )
-
-        val output = TaxCalculation.calculateRealisations(input1)
-        val realisation = output.realisations.headOption
-        assert(realisation.isDefined)
-        assert(realisation.get.sale.amount == 60 )
-        assert(realisation.get.buy.amount == 60 )
-        assert(output.remainingShares.isEmpty)
-        assert(output.realisations.size == 2)
-
-        println(s"TestSaleSplitRemaining: \nInput: $input1: \noutput: $output\n\n")
-    }
-    testSaleSplitRemaining
-}
