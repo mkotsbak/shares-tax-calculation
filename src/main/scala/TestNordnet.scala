@@ -8,7 +8,7 @@ object TestNordnet extends App {
     val trans = NordnetImporter.parseCSVString(inputLines)
 
     println(s"Name: ${trans.headOption.map(_.shareName).getOrElse("N/A")} ISIN: ${trans.headOption.map(_.isin).getOrElse("no transactions")}\n" +
-      s"Trans: " + trans.toList.mkString("\n"))
+      s"Trans:\n" + trans.toList.mkString("\n"))
 
     val res = TaxCalculation.calculateRealisations(trans)
     println(res)

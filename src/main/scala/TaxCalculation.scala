@@ -50,7 +50,7 @@ case class ShareRealisation(buy: ShareBuy, sale: ShareSale) {
 
 case class Result(realisations: Seq[ShareRealisation] = Seq.empty, remainingShares: Seq[ShareBuy] = Seq.empty) {
     override def toString = {
-        s"Realisations:\n${realisations.mkString("\n")}" +
+        s"Realisations:\n${realisations.mkString("\n\n")}" +
           s"\n\nRemaining shares:\n${remainingShares.mkString("\n")}"
     }
 }
