@@ -6,7 +6,10 @@ import scala.io.{Codec, Source}
 object TestNordnet extends App {
     val inputLines = Source.fromFile(args.head)(Codec.ISO8859).getLines()
     val trans = NordnetImporter.parseCSVString(inputLines)
-    println("Trans: " + trans.toList.mkString("\n"))
+
+    println(s"Name: ${trans.headOption.map(_.shareName).getOrElse("N/A")} ISIN: ${trans.headOption.map(_.isin).getOrElse("no transactions")}\n" +
+      s"Trans: " + trans.toList.mkString("\n"))
+
     val res = TaxCalculation.calculateRealisations(trans)
     println(res)
 }

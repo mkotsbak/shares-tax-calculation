@@ -20,6 +20,8 @@ object NordnetImporter extends CSVImporter {
         csvInput.reverse.flatMap { line =>
             def value(field: String) = line(header.indexOf(field))
 
+            val shareName = value("Verdipapir")
+            val isin = value("ISIN")
             val count = value("Antall").toLong
             val date = value("Handelsdag")
             val fees = BigDecimal(value("Avgifter").toDouble)
@@ -30,10 +32,12 @@ object NordnetImporter extends CSVImporter {
             val kjopt = "KJ.PT".r
               value("Transaksjonstype") match {
                 case kjopt() => Seq(
-                    ShareBuy(date = date, price = price, amount = count, fees = fees, exchangeRate = exchangeRate, currency = currency)
+                    ShareBuy(shareName = shareName, date = date, price = price, amount = count, fees = fees,
+                      exchangeRate = exchangeRate, currency = currency, isin = isin)
                 )
                 case "SALG" => Seq(
-                    ShareSale(date = date, price = price, amount = count, fees = fees, exchangeRate = exchangeRate, currency = currency)
+                    ShareSale(shareName = shareName, date = date, price = price, amount = count, fees = fees,
+                      exchangeRate = exchangeRate, currency = currency, isin = isin)
                 )
                 case _ => Seq.empty
             }

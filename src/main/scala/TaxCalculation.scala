@@ -4,8 +4,8 @@
   */
 
 sealed abstract class ShareTransaction {
-    val shareName: String = ""
-    val isin: String = ""
+    val shareName: String
+    val isin: String
     val securityType = "Share"
     val fees: BigDecimal
     val date: String
@@ -21,17 +21,19 @@ sealed abstract class ShareTransaction {
 
     override def toString = {
         s"Date: $date, amount: $amount, price: $price, currency: $currency, price Local currency: $priceInLocalCurrency," +
-          s" price pr. share including fees: $priceInLocalCurrencyIncludingFees, total in local currency: $totalPriceInLocalCurrency"
+          s" price per share including fees: $priceInLocalCurrencyIncludingFees, total in local currency: $totalPriceInLocalCurrency"
     }
 }
 
-case class ShareSale(date: String, currency: String = "NOK", exchangeRate: BigDecimal = 1, amount: Long, price: BigDecimal = 1, fees: BigDecimal = 0) extends ShareTransaction {
+case class ShareSale(date: String, currency: String = "NOK", exchangeRate: BigDecimal = 1, amount: Long, price: BigDecimal = 1, fees: BigDecimal = 0,
+                     shareName: String = "", isin: String = "") extends ShareTransaction {
     override def toString = "Sale: " + super.toString
     override def totalPrice = super.totalPrice - fees
     override def priceInLocalCurrencyIncludingFees = (price - feesPrShare) * exchangeRate
 }
 
-case class ShareBuy(date: String, currency: String = "NOK", exchangeRate: BigDecimal = 1, amount: Long, price: BigDecimal = 1, fees: BigDecimal = 0) extends ShareTransaction {
+case class ShareBuy(date: String, currency: String = "NOK", exchangeRate: BigDecimal = 1, amount: Long, price: BigDecimal = 1, fees: BigDecimal = 0,
+                    shareName: String = "", isin: String = "") extends ShareTransaction {
     override def toString = "Buy: " + super.toString
     override def totalPrice = super.totalPrice + fees
     override def priceInLocalCurrencyIncludingFees = (price + feesPrShare) * exchangeRate
@@ -81,5 +83,4 @@ object TaxCalculation {
         res.copy(realisations = res.realisations.reverse, res.remainingShares.reverse)
     }
 }
-
 
