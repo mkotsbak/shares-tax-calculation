@@ -3,7 +3,7 @@
   * Created by marius on 23.04.16.
   */
 
-abstract class ShareTransaction {
+sealed abstract class ShareTransaction {
     val shareName: String = ""
     val isin: String = ""
     val securityType = "Share"
